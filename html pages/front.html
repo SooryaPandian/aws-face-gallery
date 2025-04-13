@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Face Gallery</title>
+  <link rel="stylesheet" href="gallery.css" />
+</head>
+<body>
+  <header>
+    <h1>Face Gallery</h1>
+    <div class="face-selector">
+      <label for="faceSelect">Search by Face ID:</label>
+      <select id="faceSelect" onchange="searchFace()">
+        <option value="">-- Select a Face --</option>
+      </select>
+      <button onclick="loadGallery()">Show All</button>
+    </div>
+  </header>
+
+  <main class="gallery-container" id="gallery">
+    <!-- Images load here -->
+  </main>
+
+  <script>
+    async function loadFaceList() {
+      const res = await fetch('http://localhost:5000/api/faces');
+      const data = await res.json();
+      const faceSelect = document.getElementById('faceSelect');
+      faceSelect.innerHTML = '<option value="">-- Select a Face --</option>';
+
+      data.faceIds.forEach(id => {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = id;
+        faceSelect.appendChild(opt);
+      });
+    }
+
+    async function loadGallery() {
+      const res = await fetch('http://localhost:5000/api/gallery');
+      const data = await res.json();
+
+      const container = document.getElementById('gallery');
+      container.innerHTML = '';
+
+      data.gallery.forEach(item => {
+        const img = document.createElement('img');
+        img.src = item.s3Url;
+        img.classList.add('gallery-image');
+
+        const faceDiv = document.createElement('div');
+        faceDiv.classList.add('face-info');
+        faceDiv.textContent = `Faces: ${item.faces.join(', ')}`;
+
+        const card = document.createElement('div');
+        card.classList.add('image-card');
+        card.appendChild(img);
+        card.appendChild(faceDiv);
+
+        container.appendChild(card);
+      });
+    }
+
+    async function searchFace() {
+      const faceId = document.getElementById('faceSelect').value;
+      if (!faceId) return loadGallery();
+
+      const res = await fetch(`http://localhost:5000/api/search/${faceId}`);
+      const data = await res.json();
+      const container = document.getElementById('gallery');
+      container.innerHTML = '';
+
+      if (data.images.length === 0) {
+        container.innerHTML = '<p>No images found for this face.</p>';
+        return;
+      }
+
+      data.images.forEach(url => {
+        const img = document.createElement('img');
+        img.src = url;
+        img.classList.add('gallery-image');
+
+        const card = document.createElement('div');
+        card.classList.add('image-card');
+        card.appendChild(img);
+        container.appendChild(card);
+      });
+    }
+
+    // Init
+    window.onload = () => {
+      loadFaceList();
+      loadGallery();
+    };
+  </script>
+</body>
+</html>

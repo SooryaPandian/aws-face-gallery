@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Image</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 30px;
+    }
+    input[type="file"] {
+      margin-bottom: 15px;
+    }
+    #response {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #f5f5f5;
+      padding: 10px;
+      border-left: 3px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Upload Image for Face Detection</h1>
+  <form id="uploadForm">
+    <input type="file" name="image" id="imageInput" required />
+    <br />
+    <button type="submit">Upload</button>
+  </form>
+
+  <div id="response"></div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const responseBox = document.getElementById('response');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('imageInput');
+      const formData = new FormData();
+      formData.append('image', fileInput.files[0]);
+
+      try {
+        const res = await fetch('http://localhost:5000/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        responseBox.textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        responseBox.textContent = 'Upload failed:\n' + err.message;
+      }
+    });
+  </script>
+
+</body>
+</html>
